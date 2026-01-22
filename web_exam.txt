@@ -1,0 +1,118 @@
+_________________Linux_Commands______________
+
+mkdir Deskto                            --->to create directory
+touch divfile.txt                       --->to create a file inside the directory
+echo "welcome to veeva">divfile.txt     --->to give contents into the file 
+chmod u=rw,g=r,o=r divfile.txt          --->to change the permissions of the file
+cat divfile.txt                         --->to print the contents of the file
+ls -l divfile.txt                       --->to look what are the permissions given for the file.
+
+__________________SDLC____________________________
+
+PHASES:
+SDLC (Software Development Life Cycle) is a structured approach to developing software. The main phases are:
+1.Requirement Gathering & Analysis
+	Collect business needs from stakeholders.
+	Create functional and non-functional requirements.
+	Tools: JIRA, Confluence, requirement documents.
+2.System Design
+	Design architecture, database, UI/UX, and modules.
+	Produce High-Level Design (HLD) and Low-Level Design (LLD) documents.
+3.Implementation / Coding
+	Developers write code according to design documents.
+	Follows coding standards and version control (e.g., Git).
+4.Testing
+	Verify software meets requirements.
+	Types of testing: Unit, Integration, System, UAT (User Acceptance Testing).
+	Tools: Selenium, JUnit, TestNG.
+5.Deployment
+	Move application to production or staging.
+	Ensure proper configuration, release notes, and rollback plans.
+6.Maintenance
+	Fix bugs, patch security issues, add enhancements.
+	Monitor application performance and user feedback.
+
+User Story in JIRA:
+JERKINS FORMAT:
+Scenario: Successful login with valid credentials
+  Given the user is on the login page
+  When the user enters valid username and password
+  And clicks the login button
+  Then the user should be redirected to the dashboard
+  And see a welcome message
+
+__________________MAVEN & SELENIUM____________________
+
+CREATE A MAVEN PROJECT :
+mvn archetype:generate -DgroupId=com.example -DartifactId=LoginAutomation 
+-DarchetypeArtifactId=maven-archetype-quickstart -DinteractiveMode=false
+
+ADD SELENIUM DEPENDENCIES:
+<dependencies>
+    <!-- Selenium WebDriver -->
+    <dependency>
+        <groupId>org.seleniumhq.selenium</groupId>
+        <artifactId>selenium-java</artifactId>
+        <version>4.12.1</version>
+    </dependency>
+
+    <!-- TestNG (Optional for test execution) -->
+    <dependency>
+        <groupId>org.testng</groupId>
+        <artifactId>testng</artifactId>
+        <version>7.8.0</version>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+
+WEB DRIVER TEST:
+package com.example;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+public class LoginTest {
+    public static void main(String[] args) {
+        // Set up ChromeDriver
+        System.setProperty("webdriver.chrome.driver", "/path/to/chromedriver");
+        WebDriver driver = new ChromeDriver();
+        // Launch browser and open URL
+        driver.get("https://example.com/login");
+        // Click on a web element (example: login button)
+        WebElement loginButton = driver.findElement(By.id("loginBtn"));
+        loginButton.click();
+        driver.quit();
+    }
+}
+
+EXECUTE THE TEST :
+mvn clean test
+
+________________SELENIUM WEB DRIVER CODE__________________
+
+LAUNCH BROWSER:
+WebDriver driver = new ChromeDriver();
+driver.get("https://example.com/login");
+
+LOCATE ELEMENTS:
+WebElement usernameField = driver.findElement(By.cssSelector("input#username"));
+WebElement passwordField = driver.findElement(By.cssSelector("input[type='password']"));
+WebElement loginButton   = driver.findElement(By.cssSelector("button.login-btn"));
+
+PERFORM USER ACTIONS:
+usernameField.sendKeys("testuser");
+passwordField.sendKeys("password123");
+loginButton.click();
+
+SYNCHORNIZATION:
+driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(10));
+WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+WebElement dashboard = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("dashboard")));
+
+VERIFICATION & VALIDATION :
+if(dashboard.isDisplayed()){
+    System.out.println("Dashboard is visible. Login successful.");
+} else {
+    System.out.println("Dashboard not visible. Login failed.");
+}
+
