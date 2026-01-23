@@ -1,0 +1,151 @@
+1) Create tables with Primary Key and Foreign Key constraints
+Customer table (common for Accounts & Loans)
+CREATE TABLE Customer (
+    Cust_Name VARCHAR(20) PRIMARY KEY
+);
+
+Accounts table
+CREATE TABLE Accounts (
+    Acc_No VARCHAR(10) PRIMARY KEY,
+    Acc_Type VARCHAR(2) CHECK (Acc_Type IN ('SB','CA','RD')),
+    Cust_Name VARCHAR(20),
+    Branch VARCHAR(20),
+    Balance NUMBER,
+    FOREIGN KEY (Cust_Name) REFERENCES Customer(Cust_Name)
+);
+
+Loans table
+CREATE TABLE Loans (
+    L_No VARCHAR(10) PRIMARY KEY,
+    L_Type VARCHAR(2) CHECK (L_Type IN ('PL','JL','ML','CL')),
+    Cust_Name VARCHAR(20),
+    Branch VARCHAR(20),
+    Amount NUMBER,
+    FOREIGN KEY (Cust_Name) REFERENCES Customer(Cust_Name)
+);
+
+Insert customers
+INSERT INTO Customer VALUES ('John');
+INSERT INTO Customer VALUES ('David');
+INSERT INTO Customer VALUES ('Sailesh');
+INSERT INTO Customer VALUES ('Pranav');
+INSERT INTO Customer VALUES ('Mary');
+INSERT INTO Customer VALUES ('Shabir');
+
+Insert Accounts
+INSERT INTO Accounts VALUES ('A-101','SB','John','Bhimavaram',50000);
+INSERT INTO Accounts VALUES ('A-102','CA','David','Vijayawada',23450);
+INSERT INTO Accounts VALUES ('A-103','SB','John','Bhimavaram',34000);
+INSERT INTO Accounts VALUES ('A-104','SB','Sailesh','Vizag',70000);
+INSERT INTO Accounts VALUES ('A-105','CA','Pranav','Bhimavaram',90000);
+INSERT INTO Accounts VALUES ('A-106','SB','Mary','Vizag',17000);
+INSERT INTO Accounts VALUES ('A-107','CA','David','Vijayawada',56000);
+INSERT INTO Accounts VALUES ('A-108','RD','Shabir','Bhimavaram',28000);
+
+Insert Loans
+INSERT INTO Loans VALUES ('L-101','PL','David','Bhimavaram',500000);
+INSERT INTO Loans VALUES ('L-102','JL','Sailesh','Vijayawada',90000);
+INSERT INTO Loans VALUES ('L-103','ML','David','Bhimavaram',1500000);
+INSERT INTO Loans VALUES ('L-104','JL','Sailesh','Vizag',70000);
+INSERT INTO Loans VALUES ('L-105','CL','Pranav','Bhimavaram',90000);
+INSERT INTO Loans VALUES ('L-106','ML','Shabir','Vizag',170000);
+INSERT INTO Loans VALUES ('L-107','CL','Mary','Vijayawada',56000);
+INSERT INTO Loans VALUES ('L-108','PL','Shabir','Vijayawada',400000);
+
+2) Create a table with Primary Key & NOT NULL constraint
+CREATE TABLE Branch (
+    Branch_ID NUMBER PRIMARY KEY,
+    Branch_Name VARCHAR(20) NOT NULL
+);
+
+
+Verification
+
+INSERT INTO Branch VALUES (1, 'Bhimavaram');
+INSERT INTO Branch VALUES (2, NULL);   -- ❌ ERROR (NOT NULL violated)
+
+3) Accounts belonging to John
+SELECT Acc_No, Acc_Type
+FROM Accounts
+WHERE Cust_Name = 'John';
+
+4) Branch-wise sum of balances for SB and CA separately
+SELECT Branch, Acc_Type, SUM(Balance) AS Total_Balance
+FROM Accounts
+WHERE Acc_Type IN ('SB','CA')
+GROUP BY Branch, Acc_Type;
+
+5) Customer who had two accounts at the same branch
+SELECT Cust_Name
+FROM Accounts
+GROUP BY Cust_Name, Branch
+HAVING COUNT(*) >= 2;
+
+6) Maximum balance among SB accounts
+SELECT MAX(Balance) AS Max_SB_Balance
+FROM Accounts
+WHERE Acc_Type = 'SB';
+
+7) Customers who have both an account and a loan
+SELECT DISTINCT A.Cust_Name
+FROM Accounts A
+JOIN Loans L ON A.Cust_Name = L.Cust_Name;
+
+8) Customers who had two types of accounts
+SELECT Cust_Name
+FROM Accounts
+GROUP BY Cust_Name
+HAVING COUNT(DISTINCT Acc_Type) >= 2;
+
+9) Loan type with minimum total loan amount
+SELECT L_Type
+FROM Loans
+GROUP BY L_Type
+order by  SUM(Amount) ASC
+limit 1;
+
+10) Branches with more accounts than loans
+SELECT Branch
+FROM Accounts
+GROUP BY Branch
+HAVING COUNT(*) > (
+    SELECT COUNT(*)
+    FROM Loans
+    WHERE Loans.Branch = Accounts.Branch
+);
+
+11) Trigger: SB withdrawal limit Rs.15000
+CREATE OR REPLACE TRIGGER sb_withdraw_limit
+BEFORE UPDATE OF Balance ON Accounts
+FOR EACH ROW
+WHEN (OLD.Acc_Type = 'SB')
+BEGIN
+    IF (:OLD.Balance - :NEW.Balance) > 15000 THEN
+        RAISE_APPLICATION_ERROR(-20001,'Withdrawal exceeds Rs.15000 limit');
+    END IF;
+END;
+
+
+12) Stored Procedure for Deposit
+CREATE OR REPLACE PROCEDURE deposit_amount (
+    p_acc_no IN Accounts.Acc_No%TYPE,
+    p_amount IN NUMBER
+)
+AS
+BEGIN
+    UPDATE Accounts
+    SET Balance = Balance + p_amount
+    WHERE Acc_No = p_acc_no;
+
+
+
+
+
+    COMMIT;
+END;
+/
+
+
+Execution
+
+EXEC deposit_amount('A-101', 5000);
